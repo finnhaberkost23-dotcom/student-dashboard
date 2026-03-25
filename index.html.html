@@ -1,0 +1,823 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Student Data Dashboard</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+    :root {
+      --bg: #0f1117;
+      --surface: #1a1d27;
+      --surface2: #22263a;
+      --border: #2e3350;
+      --accent: #6c63ff;
+      --accent2: #ff6584;
+      --accent3: #43e97b;
+      --accent4: #f7971e;
+      --text: #e8eaf6;
+      --muted: #8b90b8;
+      --male: #60a5fa;
+      --female: #f472b6;
+      --ch: #34d399;
+      --at: #fbbf24;
+      --de: #a78bfa;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      padding: 24px;
+    }
+
+    header {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 28px;
+    }
+
+    .logo {
+      width: 44px; height: 44px;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      border-radius: 12px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 22px;
+    }
+
+    header h1 { font-size: 1.6rem; font-weight: 700; }
+    header p { font-size: 0.85rem; color: var(--muted); margin-top: 2px; }
+
+    .stats-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 14px;
+      margin-bottom: 24px;
+    }
+
+    .stat-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 16px 18px;
+      transition: transform .2s, box-shadow .2s;
+    }
+    .stat-card:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(108,99,255,.15); }
+    .stat-card .label { font-size: 0.72rem; color: var(--muted); text-transform: uppercase; letter-spacing: .08em; }
+    .stat-card .value { font-size: 1.7rem; font-weight: 700; margin-top: 4px; }
+    .stat-card .sub   { font-size: 0.75rem; color: var(--muted); margin-top: 2px; }
+
+    .main-grid {
+      display: grid;
+      grid-template-columns: 280px 1fr;
+      gap: 20px;
+      align-items: start;
+    }
+
+    .panel {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 20px;
+    }
+
+    .panel-title {
+      font-size: 0.78rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: .1em;
+      color: var(--muted);
+      margin-bottom: 16px;
+    }
+
+    .field-group { margin-bottom: 20px; }
+    .field-label { font-size: 0.8rem; font-weight: 500; margin-bottom: 8px; color: var(--text); }
+
+    select {
+      width: 100%;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      color: var(--text);
+      padding: 9px 12px;
+      font-family: inherit;
+      font-size: 0.9rem;
+      cursor: pointer;
+      outline: none;
+      appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%238b90b8' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 12px center;
+      transition: border-color .2s;
+    }
+    select:focus { border-color: var(--accent); }
+
+    .toggle-group {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .toggle-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 9px 12px;
+      cursor: pointer;
+      transition: border-color .2s, background .2s;
+      user-select: none;
+    }
+    .toggle-item:hover { border-color: var(--accent); }
+    .toggle-item.active { border-color: var(--accent); }
+
+    .toggle-label {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.85rem;
+    }
+
+    .swatch {
+      width: 10px; height: 10px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    .toggle-switch {
+      width: 34px; height: 18px;
+      background: var(--border);
+      border-radius: 9px;
+      position: relative;
+      transition: background .2s;
+      flex-shrink: 0;
+    }
+    .toggle-switch::after {
+      content: '';
+      position: absolute;
+      width: 12px; height: 12px;
+      background: #fff;
+      border-radius: 50%;
+      top: 3px; left: 3px;
+      transition: transform .2s;
+    }
+    .toggle-item.active .toggle-switch { background: var(--accent); }
+    .toggle-item.active .toggle-switch::after { transform: translateX(16px); }
+
+    .info-box {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 12px;
+      font-size: 0.78rem;
+      color: var(--muted);
+      line-height: 1.6;
+      margin-top: 16px;
+    }
+    .info-box strong { color: var(--text); }
+
+    .chart-panel {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 24px;
+      position: relative;
+    }
+
+    .chart-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      margin-bottom: 18px;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .chart-title { font-size: 1.05rem; font-weight: 600; }
+    .chart-subtitle { font-size: 0.8rem; color: var(--muted); margin-top: 3px; }
+
+    .legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+    }
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 0.75rem;
+      color: var(--muted);
+    }
+    .legend-dot {
+      width: 9px; height: 9px;
+      border-radius: 50%;
+    }
+    .legend-line {
+      width: 22px; height: 2px;
+      border-radius: 1px;
+    }
+
+    #scatter-container {
+      width: 100%;
+      position: relative;
+      overflow: hidden;
+    }
+
+    canvas {
+      display: block;
+      width: 100%;
+      border-radius: 8px;
+    }
+
+    .tooltip {
+      position: fixed;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 10px 13px;
+      font-size: 0.78rem;
+      pointer-events: none;
+      z-index: 100;
+      display: none;
+      box-shadow: 0 8px 24px rgba(0,0,0,.4);
+      min-width: 140px;
+    }
+    .tooltip .t-id { font-weight: 600; font-size: 0.83rem; margin-bottom: 6px; }
+    .tooltip .t-row { display: flex; justify-content: space-between; gap: 12px; color: var(--muted); }
+    .tooltip .t-row span:last-child { color: var(--text); font-weight: 500; }
+
+    .no-data {
+      text-align: center;
+      color: var(--muted);
+      padding: 60px 0;
+      font-size: 0.9rem;
+    }
+
+    .regression-info {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 12px 16px;
+      margin-top: 14px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 20px;
+      font-size: 0.8rem;
+    }
+    .reg-stat .label { color: var(--muted); margin-bottom: 2px; }
+    .reg-stat .val { font-weight: 600; font-size: 0.95rem; }
+
+    @media (max-width: 800px) {
+      .main-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="logo">📊</div>
+  <div>
+    <h1>Student Analytics Dashboard</h1>
+    <p>Interactive subject correlation explorer · 94 students · DE / AT / CH</p>
+  </div>
+</header>
+
+<!-- Summary stats row -->
+<div class="stats-row">
+  <div class="stat-card">
+    <div class="label">Students shown</div>
+    <div class="value" id="s-count">—</div>
+    <div class="sub">of 94 total</div>
+  </div>
+  <div class="stat-card">
+    <div class="label">Avg X-score</div>
+    <div class="value" id="s-avgx">—</div>
+    <div class="sub" id="s-xlbl">selected subject</div>
+  </div>
+  <div class="stat-card">
+    <div class="label">Avg Y-score</div>
+    <div class="value" id="s-avgy">—</div>
+    <div class="sub" id="s-ylbl">selected subject</div>
+  </div>
+  <div class="stat-card">
+    <div class="label">Correlation r</div>
+    <div class="value" id="s-r">—</div>
+    <div class="sub">Pearson</div>
+  </div>
+</div>
+
+<div class="main-grid">
+  <!-- Controls -->
+  <div class="panel">
+    <div class="panel-title">⚙ Controls</div>
+
+    <div class="field-group">
+      <div class="field-label">X-Axis Subject</div>
+      <select id="sel-x">
+        <option value="math">Mathematics</option>
+        <option value="econ">Economics</option>
+        <option value="stat">Statistics</option>
+        <option value="art">Art</option>
+      </select>
+    </div>
+
+    <div class="field-group">
+      <div class="field-label">Y-Axis Subject</div>
+      <select id="sel-y">
+        <option value="math">Mathematics</option>
+        <option value="econ">Economics</option>
+        <option value="stat" selected>Statistics</option>
+        <option value="art">Art</option>
+      </select>
+    </div>
+
+    <div class="field-group">
+      <div class="field-label">Gender Filter</div>
+      <div class="toggle-group">
+        <div class="toggle-item active" id="tog-male" onclick="toggleFilter('male')">
+          <div class="toggle-label">
+            <span class="swatch" style="background:var(--male)"></span>
+            Male
+          </div>
+          <div class="toggle-switch"></div>
+        </div>
+        <div class="toggle-item active" id="tog-female" onclick="toggleFilter('female')">
+          <div class="toggle-label">
+            <span class="swatch" style="background:var(--female)"></span>
+            Female
+          </div>
+          <div class="toggle-switch"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="field-group">
+      <div class="field-label">Country Filter</div>
+      <div class="toggle-group">
+        <div class="toggle-item active" id="tog-CH" onclick="toggleFilter('CH')">
+          <div class="toggle-label">
+            <span class="swatch" style="background:var(--ch)"></span>
+            Switzerland (CH)
+          </div>
+          <div class="toggle-switch"></div>
+        </div>
+        <div class="toggle-item active" id="tog-AT" onclick="toggleFilter('AT')">
+          <div class="toggle-label">
+            <span class="swatch" style="background:var(--at)"></span>
+            Austria (AT)
+          </div>
+          <div class="toggle-switch"></div>
+        </div>
+        <div class="toggle-item active" id="tog-DE" onclick="toggleFilter('DE')">
+          <div class="toggle-label">
+            <span class="swatch" style="background:var(--de)"></span>
+            Germany (DE)
+          </div>
+          <div class="toggle-switch"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="info-box">
+      <strong>Colour coding:</strong> dot fill = gender (blue = male, pink = female).<br/>
+      Dot border = country (green = CH, yellow = AT, purple = DE).<br/>
+      Hover a dot to see student details.
+    </div>
+  </div>
+
+  <!-- Chart -->
+  <div class="chart-panel">
+    <div class="chart-header">
+      <div>
+        <div class="chart-title" id="chart-title">Math vs Statistics</div>
+        <div class="chart-subtitle">Scatterplot with ordinary least-squares regression line</div>
+      </div>
+      <div class="legend">
+        <div class="legend-item"><div class="legend-dot" style="background:var(--male)"></div> Male</div>
+        <div class="legend-item"><div class="legend-dot" style="background:var(--female)"></div> Female</div>
+        <div class="legend-item"><div class="legend-dot" style="background:transparent;border:2px solid var(--ch);width:11px;height:11px"></div> CH</div>
+        <div class="legend-item"><div class="legend-dot" style="background:transparent;border:2px solid var(--at);width:11px;height:11px"></div> AT</div>
+        <div class="legend-item"><div class="legend-dot" style="background:transparent;border:2px solid var(--de);width:11px;height:11px"></div> DE</div>
+        <div class="legend-item"><div class="legend-line" style="background:var(--accent)"></div> Regression</div>
+      </div>
+    </div>
+
+    <div id="scatter-container">
+      <canvas id="scatter"></canvas>
+    </div>
+
+    <div class="regression-info" id="reg-info">
+      <div class="reg-stat"><div class="label">Equation</div><div class="val" id="reg-eq">—</div></div>
+      <div class="reg-stat"><div class="label">R²</div><div class="val" id="reg-r2">—</div></div>
+      <div class="reg-stat"><div class="label">Slope</div><div class="val" id="reg-slope">—</div></div>
+      <div class="reg-stat"><div class="label">Intercept</div><div class="val" id="reg-intercept">—</div></div>
+      <div class="reg-stat"><div class="label">n (visible)</div><div class="val" id="reg-n">—</div></div>
+    </div>
+  </div>
+</div>
+
+<div class="tooltip" id="tooltip"></div>
+
+<script>
+// ── Raw data ────────────────────────────────────────────────────────────────
+const RAW = [
+  {id:91,country:"CH",gender:"male",math:2,econ:8.1,stat:3.2,art:9.5},
+  {id:89,country:"CH",gender:"male",math:6.8,econ:10,stat:7.3,art:8.8},
+  {id:31,country:"AT",gender:"male",math:7.1,econ:9.6,stat:7.7,art:8.7},
+  {id:47,country:"DE",gender:"male",math:9,econ:6.2,stat:7.5,art:7.2},
+  {id:45,country:"AT",gender:"male",math:10,econ:9.2,stat:9.6,art:6.6},
+  {id:15,country:"CH",gender:"female",math:8.9,econ:6.2,stat:7.5,art:7},
+  {id:81,country:"CH",gender:"female",math:9.8,econ:8.8,stat:9.4,art:7.1},
+  {id:13,country:"DE",gender:"female",math:9.7,econ:8.5,stat:9.4,art:6.2},
+  {id:26,country:"DE",gender:"female",math:7.3,econ:9.2,stat:7.7,art:8.8},
+  {id:72,country:"AT",gender:"male",math:4.9,econ:7.5,stat:4.9,art:9.9},
+  {id:44,country:"AT",gender:"male",math:6.3,econ:5.6,stat:4.9,art:8.8},
+  {id:66,country:"CH",gender:"male",math:5.2,econ:8.1,stat:4.4,art:9.7},
+  {id:60,country:"AT",gender:"male",math:7.8,econ:7.3,stat:8.8,art:7.2},
+  {id:34,country:"CH",gender:"female",math:5.5,econ:7.1,stat:5.1,art:9.1},
+  {id:2,country:"CH",gender:"female",math:5.4,econ:9.2,stat:6.7,art:8.4},
+  {id:18,country:"CH",gender:"male",math:6.5,econ:9,stat:6.1,art:8.1},
+  {id:30,country:"DE",gender:"female",math:8.2,econ:5.6,stat:8.4,art:5.5},
+  {id:16,country:"AT",gender:"male",math:8.2,econ:5.2,stat:8.4,art:5.6},
+  {id:53,country:"AT",gender:"female",math:6.2,econ:9,stat:7.1,art:8.9},
+  {id:54,country:"CH",gender:"female",math:8.2,econ:9.4,stat:8.1,art:7.5},
+  {id:28,country:"CH",gender:"male",math:6.2,econ:7.3,stat:5.3,art:8.8},
+  {id:76,country:"DE",gender:"female",math:9.4,econ:9,stat:9.2,art:7.1},
+  {id:75,country:"DE",gender:"female",math:9.5,econ:7.9,stat:8.8,art:5.9},
+  {id:71,country:"DE",gender:"female",math:8.6,econ:6.2,stat:7.3,art:6.7},
+  {id:58,country:"DE",gender:"male",math:6.3,econ:9,stat:6.3,art:8.4},
+  {id:11,country:"CH",gender:"female",math:8.1,econ:6.9,stat:6.3,art:10},
+  {id:3,country:"DE",gender:"male",math:5.4,econ:7.7,stat:4.9,art:9.2},
+  {id:14,country:"CH",gender:"female",math:6.2,econ:8.8,stat:7.1,art:9.3},
+  {id:55,country:"AT",gender:"male",math:7.1,econ:7.3,stat:5.5,art:9.7},
+  {id:7,country:"DE",gender:"female",math:7,econ:8.8,stat:5.9,art:9.2},
+  {id:49,country:"CH",gender:"male",math:9.7,econ:9.2,stat:9.2,art:6.7},
+  {id:56,country:"CH",gender:"female",math:9.8,econ:7.5,stat:8.4,art:6.7},
+  {id:90,country:"DE",gender:"female",math:9.7,econ:7.9,stat:8.4,art:6.7},
+  {id:39,country:"CH",gender:"male",math:9.2,econ:8.5,stat:9.2,art:6.4},
+  {id:17,country:"DE",gender:"male",math:7.8,econ:7.5,stat:7.9,art:7.4},
+  {id:82,country:"DE",gender:"female",math:5.7,econ:9.4,stat:6.7,art:8},
+  {id:20,country:"DE",gender:"male",math:4.7,econ:7.1,stat:4,art:9.6},
+  {id:35,country:"AT",gender:"female",math:9.2,econ:8.8,stat:9.4,art:7},
+  {id:61,country:"CH",gender:"male",math:7,econ:7.9,stat:4.9,art:9.9},
+  {id:59,country:"CH",gender:"female",math:8.6,econ:5.8,stat:9,art:6.2},
+  {id:62,country:"AT",gender:"male",math:6.5,econ:9,stat:6.7,art:8.3},
+  {id:38,country:"CH",gender:"female",math:4.1,econ:6.9,stat:3,art:9.9},
+  {id:29,country:"DE",gender:"female",math:9,econ:8.3,stat:6.9,art:5.8},
+  {id:80,country:"DE",gender:"female",math:7.6,econ:7.5,stat:4.9,art:9.6},
+  {id:48,country:"CH",gender:"male",math:9.4,econ:7.9,stat:8.1,art:5.5},
+  {id:32,country:"CH",gender:"female",math:9,econ:9,stat:7.3,art:5.6},
+  {id:43,country:"DE",gender:"male",math:4.2,econ:9,stat:3.2,art:9.7},
+  {id:51,country:"AT",gender:"male",math:4.1,econ:8.8,stat:3,art:10},
+  {id:25,country:"CH",gender:"female",math:8.6,econ:9.2,stat:7.7,art:5.8},
+  {id:24,country:"CH",gender:"female",math:4.2,econ:6.5,stat:3.2,art:9.6},
+  {id:69,country:"DE",gender:"male",math:6.6,econ:5.8,stat:5.1,art:9.1},
+  {id:83,country:"CH",gender:"female",math:10,econ:9.6,stat:8.4,art:6.7},
+  {id:85,country:"DE",gender:"male",math:8.6,econ:5.4,stat:7.5,art:9.5},
+  {id:12,country:"AT",gender:"female",math:9.4,econ:9.4,stat:8.6,art:7},
+  {id:27,country:"CH",gender:"female",math:6.3,econ:5.8,stat:5.7,art:9.2},
+  {id:70,country:"CH",gender:"male",math:6.2,econ:8.5,stat:5.1,art:8.1},
+  {id:92,country:"CH",gender:"female",math:9.7,econ:7.5,stat:8.8,art:7.1},
+  {id:65,country:"CH",gender:"male",math:7.6,econ:7.1,stat:8.4,art:7.4},
+  {id:1,country:"AT",gender:"male",math:8.9,econ:6,stat:7.3,art:7.1},
+  {id:23,country:"AT",gender:"female",math:8.1,econ:9.4,stat:8.6,art:7.8},
+  {id:10,country:"CH",gender:"female",math:7.1,econ:5.4,stat:5.1,art:9.3},
+  {id:86,country:"DE",gender:"female",math:8.9,econ:5.4,stat:9,art:6.7},
+  {id:41,country:"AT",gender:"male",math:6,econ:10,stat:6.5,art:8.3},
+  {id:42,country:"AT",gender:"male",math:5.5,econ:7.3,stat:5.1,art:9.3},
+  {id:73,country:"AT",gender:"female",math:8.9,econ:5,stat:9.6,art:6.2},
+  {id:77,country:"AT",gender:"male",math:8.4,econ:5.6,stat:6.9,art:9.5},
+  {id:9,country:"DE",gender:"female",math:9.4,econ:9.4,stat:9,art:7.1},
+  {id:37,country:"DE",gender:"female",math:8.1,econ:9.2,stat:8.4,art:7.6},
+  {id:36,country:"DE",gender:"male",math:6,econ:7.9,stat:5.5,art:8.9},
+  {id:6,country:"CH",gender:"female",math:4.4,econ:6,stat:3.4,art:10},
+  {id:57,country:"DE",gender:"male",math:9.4,econ:9.2,stat:10,art:7.1},
+  {id:93,country:"AT",gender:"male",math:8.9,econ:6.5,stat:7.1,art:7},
+  {id:21,country:"CH",gender:"female",math:7.4,econ:8.8,stat:5.7,art:8.8},
+  {id:68,country:"CH",gender:"female",math:7.3,econ:8.5,stat:5.7,art:8.9},
+  {id:88,country:"CH",gender:"female",math:9.7,econ:7.3,stat:8.4,art:6.8},
+  {id:19,country:"CH",gender:"female",math:7.1,econ:8.5,stat:5.3,art:9.1},
+  {id:74,country:"CH",gender:"male",math:8.4,econ:5.6,stat:7.1,art:9.7},
+  {id:84,country:"DE",gender:"male",math:6.6,econ:8.1,stat:5.3,art:8.4},
+  {id:22,country:"AT",gender:"female",math:6.8,econ:9.2,stat:7.1,art:8.5},
+  {id:67,country:"AT",gender:"male",math:9.8,econ:8.3,stat:9.8,art:6.8},
+  {id:46,country:"CH",gender:"female",math:7.9,econ:6.5,stat:5.9,art:9.7},
+  {id:40,country:"DE",gender:"female",math:6.8,econ:5.4,stat:5.5,art:9.6},
+  {id:87,country:"DE",gender:"female",math:6.3,econ:9.2,stat:7.7,art:8.8},
+  {id:79,country:"CH",gender:"male",math:8.7,econ:6.9,stat:7.1,art:7},
+  {id:64,country:"CH",gender:"female",math:7.4,econ:5.4,stat:5.7,art:9.7},
+  {id:33,country:"AT",gender:"male",math:6.5,econ:7.9,stat:4.9,art:8.8},
+  {id:63,country:"CH",gender:"female",math:7.3,econ:9,stat:7.1,art:8},
+  {id:78,country:"AT",gender:"male",math:6.3,econ:9.2,stat:5.7,art:8},
+  {id:5,country:"CH",gender:"male",math:8.1,econ:5.4,stat:8.6,art:5.9},
+  {id:8,country:"DE",gender:"female",math:7.4,econ:8.8,stat:7.7,art:8.7},
+  {id:50,country:"DE",gender:"female",math:8.2,econ:6.5,stat:6.7,art:9.6},
+  {id:4,country:"AT",gender:"male",math:9.7,econ:7.9,stat:8.4,art:5.6},
+  {id:52,country:"DE",gender:"female",math:4.1,econ:6.2,stat:3.4,art:9.9},
+];
+
+// ── State ────────────────────────────────────────────────────────────────────
+const state = {
+  xKey: 'math',
+  yKey: 'stat',
+  filters: { male: true, female: true, CH: true, AT: true, DE: true },
+};
+
+const LABELS = { math: 'Mathematics', econ: 'Economics', stat: 'Statistics', art: 'Art' };
+const COUNTRY_COLORS = { CH: '#34d399', AT: '#fbbf24', DE: '#a78bfa' };
+const GENDER_COLORS  = { male: '#60a5fa', female: '#f472b6' };
+
+// ── Canvas setup ─────────────────────────────────────────────────────────────
+const canvas = document.getElementById('scatter');
+const ctx    = canvas.getContext('2d');
+const tooltip = document.getElementById('tooltip');
+
+const MARGIN = { top: 20, right: 20, bottom: 52, left: 52 };
+let W = 0, H = 0, dotRadius = 7;
+let hitTargets = [];
+
+function resize() {
+  const container = document.getElementById('scatter-container');
+  const dpr = window.devicePixelRatio || 1;
+  W = container.clientWidth;
+  H = Math.max(380, Math.round(W * 0.55));
+  canvas.width  = W * dpr;
+  canvas.height = H * dpr;
+  canvas.style.width  = W + 'px';
+  canvas.style.height = H + 'px';
+  ctx.scale(dpr, dpr);
+  render();
+}
+
+// ── Helpers ──────────────────────────────────────────────────────────────────
+function getVisible() {
+  return RAW.filter(d =>
+    state.filters[d.gender] && state.filters[d.country]
+  );
+}
+
+function linReg(data, xk, yk) {
+  const n = data.length;
+  if (n < 2) return null;
+  const xs = data.map(d => d[xk]);
+  const ys = data.map(d => d[yk]);
+  const mx = xs.reduce((a,b)=>a+b,0)/n;
+  const my = ys.reduce((a,b)=>a+b,0)/n;
+  let num = 0, den = 0, varY = 0;
+  for (let i=0; i<n; i++) {
+    num += (xs[i]-mx)*(ys[i]-my);
+    den += (xs[i]-mx)**2;
+    varY += (ys[i]-my)**2;
+  }
+  if (den === 0) return null;
+  const slope = num/den;
+  const intercept = my - slope*mx;
+  const r = num / Math.sqrt(den * varY);
+  const r2 = r*r;
+  return { slope, intercept, r, r2 };
+}
+
+function toCanvasX(v, min, max) {
+  return MARGIN.left + (v - min) / (max - min) * (W - MARGIN.left - MARGIN.right);
+}
+function toCanvasY(v, min, max) {
+  return H - MARGIN.bottom - (v - min) / (max - min) * (H - MARGIN.top - MARGIN.bottom);
+}
+
+function niceRange(data, key) {
+  const vals = data.map(d => d[key]);
+  const lo = Math.max(0, Math.floor(Math.min(...vals)) - 0.5);
+  const hi = Math.min(10, Math.ceil(Math.max(...vals)) + 0.5);
+  return [lo, hi];
+}
+
+// ── Render ───────────────────────────────────────────────────────────────────
+function render() {
+  ctx.clearRect(0, 0, W, H);
+  hitTargets = [];
+
+  const data = getVisible();
+  const xk = state.xKey, yk = state.yKey;
+
+  if (data.length === 0) {
+    ctx.fillStyle = '#8b90b8';
+    ctx.font = '14px Inter, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('No data matches current filters.', W/2, H/2);
+    updateStats([], null);
+    return;
+  }
+
+  // Use full 0-10 range so axes are stable across selections
+  const allX = RAW.map(d => d[xk]);
+  const allY = RAW.map(d => d[yk]);
+  const xMin = 0, xMax = 10.5;
+  const yMin = 0, yMax = 10.5;
+
+  // Grid
+  ctx.strokeStyle = '#2e3350';
+  ctx.lineWidth = 1;
+  const ticks = [0,2,4,6,8,10];
+  for (const t of ticks) {
+    const cx = toCanvasX(t, xMin, xMax);
+    ctx.beginPath(); ctx.moveTo(cx, MARGIN.top); ctx.lineTo(cx, H - MARGIN.bottom);
+    ctx.stroke();
+    const cy = toCanvasY(t, yMin, yMax);
+    ctx.beginPath(); ctx.moveTo(MARGIN.left, cy); ctx.lineTo(W - MARGIN.right, cy);
+    ctx.stroke();
+  }
+
+  // Axes
+  ctx.strokeStyle = '#4a5080';
+  ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  ctx.moveTo(MARGIN.left, MARGIN.top);
+  ctx.lineTo(MARGIN.left, H - MARGIN.bottom);
+  ctx.lineTo(W - MARGIN.right, H - MARGIN.bottom);
+  ctx.stroke();
+
+  // Tick labels
+  ctx.fillStyle = '#8b90b8';
+  ctx.font = '11px Inter, sans-serif';
+  ctx.textAlign = 'center';
+  for (const t of ticks) {
+    const cx = toCanvasX(t, xMin, xMax);
+    ctx.fillText(t, cx, H - MARGIN.bottom + 18);
+  }
+  ctx.textAlign = 'right';
+  for (const t of ticks) {
+    const cy = toCanvasY(t, yMin, yMax);
+    ctx.fillText(t, MARGIN.left - 8, cy + 4);
+  }
+
+  // Axis labels
+  ctx.fillStyle = '#c5c8e6';
+  ctx.font = '13px Inter, sans-serif';
+  ctx.textAlign = 'center';
+  ctx.fillText(LABELS[xk], W/2, H - 6);
+  ctx.save();
+  ctx.translate(14, H/2);
+  ctx.rotate(-Math.PI/2);
+  ctx.fillText(LABELS[yk], 0, 0);
+  ctx.restore();
+
+  // Regression line
+  const reg = linReg(data, xk, yk);
+  if (reg) {
+    const x1 = xMin, x2 = xMax;
+    const y1 = reg.slope * x1 + reg.intercept;
+    const y2 = reg.slope * x2 + reg.intercept;
+    ctx.save();
+    ctx.strokeStyle = '#6c63ff';
+    ctx.lineWidth = 2.5;
+    ctx.setLineDash([8, 4]);
+    ctx.shadowColor = '#6c63ff88';
+    ctx.shadowBlur = 8;
+    ctx.beginPath();
+    ctx.moveTo(toCanvasX(x1, xMin, xMax), toCanvasY(y1, yMin, yMax));
+    ctx.lineTo(toCanvasX(x2, xMin, xMax), toCanvasY(y2, yMin, yMax));
+    ctx.stroke();
+    ctx.restore();
+  }
+
+  // Dots
+  for (const d of data) {
+    const cx = toCanvasX(d[xk], xMin, xMax);
+    const cy = toCanvasY(d[yk], yMin, yMax);
+
+    // Shadow glow
+    ctx.save();
+    ctx.shadowColor = GENDER_COLORS[d.gender] + '88';
+    ctx.shadowBlur = 10;
+
+    // Fill
+    ctx.beginPath();
+    ctx.arc(cx, cy, dotRadius, 0, Math.PI*2);
+    ctx.fillStyle = GENDER_COLORS[d.gender];
+    ctx.fill();
+
+    // Country border
+    ctx.lineWidth = 2.5;
+    ctx.strokeStyle = COUNTRY_COLORS[d.country];
+    ctx.stroke();
+    ctx.restore();
+
+    hitTargets.push({ d, cx, cy });
+  }
+
+  updateStats(data, reg);
+  updateRegInfo(reg, data.length);
+}
+
+function updateStats(data, reg) {
+  const xk = state.xKey, yk= state.yKey;
+  document.getElementById('s-count').textContent = data.length;
+  document.getElementById('s-xlbl').textContent  = LABELS[xk];
+  document.getElementById('s-ylbl').textContent  = LABELS[yk];
+  if (data.length === 0) {
+    ['s-avgx','s-avgy','s-r'].forEach(id => document.getElementById(id).textContent = '—');
+    return;
+  }
+  const avgX = data.reduce((a,d)=>a+d[xk],0)/data.length;
+  const avgY = data.reduce((a,d)=>a+d[yk],0)/data.length;
+  document.getElementById('s-avgx').textContent = avgX.toFixed(2);
+  document.getElementById('s-avgy').textContent = avgY.toFixed(2);
+  document.getElementById('s-r').textContent    = reg ? reg.r.toFixed(3) : '—';
+}
+
+function updateRegInfo(reg, n) {
+  document.getElementById('reg-n').textContent = n;
+  if (!reg) {
+    ['reg-eq','reg-r2','reg-slope','reg-intercept'].forEach(id =>
+      document.getElementById(id).textContent = '—');
+    return;
+  }
+  const xk = state.xKey, yk = state.yKey;
+  const slp = reg.slope.toFixed(3), intc = reg.intercept.toFixed(3);
+  const sign = reg.intercept >= 0 ? '+' : '−';
+  document.getElementById('reg-eq').textContent =
+    `${LABELS[yk].slice(0,4)} = ${slp} · ${LABELS[xk].slice(0,4)} ${sign} ${Math.abs(reg.intercept).toFixed(3)}`;
+  document.getElementById('reg-r2').textContent = reg.r2.toFixed(4);
+  document.getElementById('reg-slope').textContent = slp;
+  document.getElementById('reg-intercept').textContent = intc;
+}
+
+function updateTitle() {
+  const xk = state.xKey, yk = state.yKey;
+  document.getElementById('chart-title').textContent =
+    `${LABELS[xk]} vs ${LABELS[yk]}`;
+}
+
+// ── Tooltip ──────────────────────────────────────────────────────────────────
+canvas.addEventListener('mousemove', e => {
+  const rect = canvas.getBoundingClientRect();
+  const mx = e.clientX - rect.left;
+  const my = e.clientY - rect.top;
+  let hit = null;
+  for (const t of hitTargets) {
+    if (Math.hypot(mx - t.cx, my - t.cy) <= dotRadius + 4) { hit = t; break; }
+  }
+  if (hit) {
+    const d = hit.d;
+    const xk = state.xKey, yk = state.yKey;
+    tooltip.style.display = 'block';
+    tooltip.style.left    = (e.clientX + 14) + 'px';
+    tooltip.style.top     = (e.clientY - 10) + 'px';
+    tooltip.innerHTML = `
+      <div class="t-id">Student #${d.id}</div>
+      <div class="t-row"><span>Gender</span><span>${d.gender}</span></div>
+      <div class="t-row"><span>Country</span><span>${d.country}</span></div>
+      <div class="t-row"><span>${LABELS[xk]}</span><span>${d[xk]}</span></div>
+      <div class="t-row"><span>${LABELS[yk]}</span><span>${d[yk]}</span></div>`;
+    canvas.style.cursor = 'pointer';
+  } else {
+    tooltip.style.display = 'none';
+    canvas.style.cursor   = 'default';
+  }
+});
+canvas.addEventListener('mouseleave', () => { tooltip.style.display = 'none'; });
+
+// ── Event listeners ───────────────────────────────────────────────────────────
+document.getElementById('sel-x').addEventListener('change', e => {
+  state.xKey = e.target.value;
+  if (state.xKey === state.yKey) {
+    // Auto-pick different Y
+    const opts = ['math','econ','stat','art'];
+    state.yKey = opts.find(o => o !== state.xKey);
+    document.getElementById('sel-y').value = state.yKey;
+  }
+  updateTitle(); render();
+});
+
+document.getElementById('sel-y').addEventListener('change', e => {
+  state.yKey = e.target.value;
+  if (state.xKey === state.yKey) {
+    const opts = ['math','econ','stat','art'];
+    state.xKey = opts.find(o => o !== state.yKey);
+    document.getElementById('sel-x').value = state.xKey;
+  }
+  updateTitle(); render();
+});
+
+function toggleFilter(key) {
+  state.filters[key] = !state.filters[key];
+  const el = document.getElementById('tog-' + key);
+  el.classList.toggle('active', state.filters[key]);
+  render();
+}
+
+// ── Init ──────────────────────────────────────────────────────────────────────
+window.addEventListener('resize', resize);
+resize();
+updateTitle();
+</script>
+</body>
+</html>
